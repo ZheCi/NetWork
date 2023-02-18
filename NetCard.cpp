@@ -1,28 +1,33 @@
-#include <set>
-#include <arpa/inet.h>
-#include <iostream>
-#include <bitset>
-#include <vector>
-#include <pcap.h>
-#include <set>
-#include <map>
+#include "NetCard.h"
 
-using namespace std;
-
-class NetCardInfo
+// 查询指定网卡IP
+NetAddrList NetCardInfo::searchName(const string name)
 {
-    friend bool GetNetCardList(NetCardInfo &);
+    return name_ip[name];
+}
 
-    public:
-        // 返回指定接口的IP
-        set<pair<string, string>> searchName(string name){ return name_ip[name]; }
-        
-    private:
-        map<string, set<pair<string, string>>> name_ip;
+// 打印指定网卡信息
+void EchoDevIp(const string name)
+{
+    unsigned short count = 0;
+    NetCardInfo devlist;
+    GetNetCardList(devlist);
 
-        // 插入
-        void insert(pair<string, set<pair<string, string>>> net){ name_ip.insert(net); }
-};
+    NetAddrList addlist = devlist.searchName(name);
+
+    cout << "网卡(" << name << ")IP信息:\n";
+
+    for(auto i : addlist)
+    {
+        cout << "\t" << dec << ++count << " - IP: " << i.first << "\t子网掩码: " << i.second << endl;
+    }
+    cout << "================================================================\n";
+}
+
+ void NetCardInfo::insert(pair<string, NetAddrList> net)
+{
+    name_ip.insert(net);
+}
 
 bool GetNetCardList(NetCardInfo &netcard)
 {
@@ -70,18 +75,3 @@ bool GetNetCardList(NetCardInfo &netcard)
     return true;
 }
 
-int main(void)
-{
-    NetCardInfo netDev;
-    GetNetCardList(netDev);
-    
-    set<pair<string, string>> eth = netDev.searchName("lo");
-
-    for (auto i : eth)
-    {
-        cout << i.first << endl;
-        cout << i.second<< endl;
-    }
-    
-    return 0;
-}
