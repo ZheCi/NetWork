@@ -1,61 +1,7 @@
 #include <iostream>
-#include <pcap/pcap.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#include <netinet/udp.h>
-#include <net/ethernet.h>
-#include <netinet/ether.h>
-#include <netinet/ip_icmp.h>
+#include  "Sniffer.h"
 
 using namespace std;
-
-class PacketHandler{
-    public:
-        // 构造/析构 - 默认
-        PacketHandler() = default;
-        ~PacketHandler() = default;
-
-        // 根据数据包地址分析出ip/tcp等包头地址
-        void init(const u_char *);
-
-        // 打印ethdr
-        void showEthdr();
-        void showItu();
-        void showIpArp();
-
-    private:
-        // Ehter
-        struct ether_header *ethdr;
-        // (IP  and TCP/UCP/ICMP) or ARP
-        union{
-            //IP and TCP/UDP/ICMP
-            struct{
-                //IP
-                struct ip *iphdr;
-                //TCP/UDP/ICMP
-                union{
-                    struct icmp *icmphdr;
-                    struct tcphdr *tcphdr;
-                    struct udphdr *udphdr;
-                };
-            };
-            // ARP
-            struct ether_arp *arphdr;
-        }; 
-
-        // 为shwoIpArp中的回调函数，用户不能直接调用
-        void showIp();
-        void showArp();
-
-        // 为showItu中的回调函数，用户不能直接访问
-        void showTcp();
-        void showUdp();
-        void showIcmp();
-
-        // 拷贝/拷贝赋值 - 删除
-        PacketHandler(PacketHandler&) = delete;
-        PacketHandler& operator =(PacketHandler &) = delete;
-};
 
 void PacketHandler::showItu(void)
 {
@@ -218,50 +164,4 @@ void PacketHandler::init(const u_char *packet)
             udphdr = reinterpret_cast<struct udphdr*>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
             break;
     }
-}
-
-
-void loopUserfun(u_char *user, const struct pcap_pkthdr *header, const u_char *packet)
-{
-    PacketHandler packhdr;
-
-    packhdr.init(packet);
-
-    packhdr.showEthdr();
-
-    packhdr.showIpArp();
-
-    packhdr.showItu();
-
-    cout << "================================================================\n";
-
-}
-
-int main(void)
-{
-    // 设备句柄
-    pcap_t *dev;
-    char errbuff[PCAP_ERRBUF_SIZE];
-
-    // 打开网路接口
-    dev = pcap_open_live("eth0", 65535, 1, 1000, errbuff);
-
-    if(dev == NULL)
-    {
-        cerr << errbuff << endl;
-        exit(-1);
-    }
-
-    // 配置过滤器
-    struct bpf_program setFilter = {0};
-    pcap_compile(dev, &setFilter, "udp", 1, 0);
-    pcap_setfilter(dev, &setFilter);
-
-    // 捕获数据包
-    pcap_loop(dev, 10000, loopUserfun, NULL);
-
-    // 关闭网络接口
-    pcap_close(dev);
-
-    return 0;
 }
