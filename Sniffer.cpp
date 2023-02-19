@@ -1,4 +1,3 @@
-#include <iostream>
 #include  "Sniffer.h"
 
 using namespace std;
@@ -20,13 +19,14 @@ void PacketHandler::showItu(void)
 
 void PacketHandler::showIcmp(void)
 {
-    cout << "ICMP头部信息: \n\t";
+    cout << COL(5, 40, 33) << "ICMP头部信息:" << OFFCOL << "\n\t";
+
     printf("Type:%d Code:%d ID:%d Seq:%d\n", icmphdr->icmp_type, icmphdr->icmp_code, ntohs(icmphdr->icmp_hun.ih_idseq.icd_id), ntohs(icmphdr->icmp_hun.ih_idseq.icd_seq));
 }
 
 void PacketHandler::showUdp(void)
 {
-    cout << "UDP头部信息: \n\t";
+    cout << COL(5, 40, 33) << "UDP头部信息:" << OFFCOL << "\n\t";
     cout << "源端口: " << dec << ntohs(udphdr->uh_sport) << "\n\t";
     cout << "目的端口: " << dec << ntohs(udphdr->uh_dport) << "\n\t";
     cout << "长度: " << dec << ntohs(udphdr->uh_ulen) << "\n\t";
@@ -35,7 +35,7 @@ void PacketHandler::showUdp(void)
 
 void PacketHandler::showTcp(void)
 {
-    cout << "TCP头部信息: \n\t";
+    cout << COL(5, 40, 33) << "TCP头部信息:" << OFFCOL << "\n\t";
     cout << "源端口: " << dec << ntohs(tcphdr->th_sport) << "\n\t";
     cout << "目的端口: " << dec << ntohs(tcphdr->th_dport) << "\n\t";
 
@@ -58,7 +58,7 @@ void PacketHandler::showIpArp(void)
 
 void PacketHandler::showArp(void)
 {
-    cout << "(R)ARP头部信息: \n\t";
+    cout << COL(5, 40, 34) << "(R)ARP头部信息:" << OFFCOL << "\n\t";
     cout << "硬件类型: " << (ntohs(arphdr->ea_hdr.ar_hrd) == 0x0001 ? "Ether" : "Unknown") << "\n\t";
     cout << "协议类型: " << (ntohs(arphdr->ea_hdr.ar_pro) == 0x800 ? "IPv4" : "Unknown") << "\n\t";
     cout << "操作码: ";
@@ -109,7 +109,7 @@ void PacketHandler::showArp(void)
 
 void PacketHandler::showIp(void)
 {
-    cout << "IP包头部信息: \n\t";
+    cout << COL(5, 40, 34) << "IP包头部信息:" << OFFCOL << "\n\t";
     cout << "版本号: " << iphdr->ip_v << "\n\t";
     cout << "源地址: " << inet_ntoa(iphdr->ip_src) << "\n\t";
     cout << "目地址: " << inet_ntoa(iphdr->ip_dst) << "\n\t";
@@ -130,7 +130,8 @@ void PacketHandler::showIp(void)
 
 void PacketHandler::showEthdr(void)
 {   
-    cout << "Ethernet_II帧头部信息:\n\t";
+    cout << COL(5, 40, 32) << "Ethernet_II帧头部信息:" << OFFCOL << "\n\t";
+
     cout << "源MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(ethdr->ether_shost)) << "\n\t";
     cout << "目的MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(ethdr->ether_shost)) << "\n\t";
     cout << "上层协议类型: " << hex << (ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? "IPv4(0x0800)" : "ARP(0x0806)") << "\n";
@@ -164,4 +165,40 @@ void PacketHandler::init(const u_char *packet)
             udphdr = reinterpret_cast<struct udphdr*>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
             break;
     }
+}
+
+// 数据包整体基本信息
+void pkthdrInfo(const struct pcap_pkthdr *header)
+{
+    char buffer[80];
+    struct tm *tm_ptr;
+
+    tm_ptr = localtime(&(header->ts.tv_sec));
+
+    strftime(buffer, 80, "%Y/%m/%d %H:%M:%S ", tm_ptr);
+
+    unsigned int ms = (header->ts.tv_usec) / 1000;
+    unsigned int ws = (header->ts.tv_usec) % 1000;
+
+    string tim = buffer;
+
+    tim = tim + to_string(ms) + "." + to_string(ws) + "ms";
+
+    cout << COL(5, 40, 31) << "数据包信息摘要:" << OFFCOL << "\n\t";
+    cout << "捕获时间: " << tim << "\n\t";
+    cout << "捕获数据包的长度: " << header->caplen << "\n\t";
+    cout << "数据包的实际长度: " << header->len << "\n";
+}
+
+// 打印数据包内容
+void EchoPacket(const struct pcap_pkthdr *header, const u_char *packet)
+{
+    cout << COL(5, 40, 37) << "数据包内容:" << OFFCOL << "\n\t";
+    for(int i = 0; i < static_cast<int>(header->len); i++)
+    {
+        printf("%02x ", packet[i]);
+        if((i + 1) % 16 == 0)
+            printf("\n\t");
+    }
+    printf("\n\n");
 }

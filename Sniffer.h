@@ -1,3 +1,5 @@
+#ifndef __SNIFFER_H__
+#define __SNIFFER_H__
 #include <pcap/pcap.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
@@ -5,6 +7,7 @@
 #include <net/ethernet.h>
 #include <netinet/ether.h>
 #include <netinet/ip_icmp.h>
+#include "NetCard.h"
 
 using namespace std;
 
@@ -56,3 +59,10 @@ class PacketHandler{
         PacketHandler& operator =(PacketHandler &) = delete;
 };
 
+
+// 打印数据包信息概述
+void pkthdrInfo(const struct pcap_pkthdr *header);
+// 打印数据包内容
+void EchoPacket(const struct pcap_pkthdr *header, const u_char *packet);
+
+#endif

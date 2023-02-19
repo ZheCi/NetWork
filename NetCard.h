@@ -1,4 +1,6 @@
-#include <set>
+#ifndef __NETCARD_H__
+#define __NETCARD_H__
+
 #include <arpa/inet.h>
 #include <iostream>
 #include <bitset>
@@ -6,6 +8,9 @@
 #include <pcap.h>
 #include <set>
 #include <map>
+
+#define COL(x, y, z)  "\033[" #x ";" #y ";" #z "m"
+#define OFFCOL "\033[0m"
 
 using namespace std;
 using NetAddrList=set<pair<string, string>>;
@@ -26,3 +31,5 @@ class NetCardInfo
 void EchoDevIp(const string name);
 // 获取网卡列表且保存在参数(netcard)中
 bool GetNetCardList(NetCardInfo &netcard);
+
+#endif
