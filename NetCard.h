@@ -18,7 +18,7 @@ using NetAddrList=set<pair<string, string>>;
 class NetCardInfo
 {
     friend bool GetNetCardList(NetCardInfo &);
-
+    friend void EchoAllDev(void);
     public:
         // 返回指定接口的IP
         NetAddrList searchName(const string name);
@@ -29,6 +29,8 @@ class NetCardInfo
 
 // 打印指定网卡信息
 void EchoDevIp(const string name);
+// 打印所有网卡信息
+void EchoAllDev(void);
 // 获取网卡列表且保存在参数(netcard)中
 bool GetNetCardList(NetCardInfo &netcard);
 

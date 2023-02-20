@@ -199,6 +199,11 @@ void EchoPacket(const struct pcap_pkthdr *header, const u_char *packet)
         printf("%02x ", packet[i]);
         if((i + 1) % 16 == 0)
             printf("\n\t");
+        if((i == 90))
+        {
+            cout << "......";
+            break;
+        }
     }
     printf("\n\n");
 }

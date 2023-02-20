@@ -3,16 +3,45 @@
 // 查询指定网卡IP
 NetAddrList NetCardInfo::searchName(const string name)
 {
-    return name_ip[name];
+    try{
+        return name_ip.at(name);
+    }
+    catch (const out_of_range &orr)
+    {
+        cout << COL(1, 40, 31) << "\nDon't have the equipment to called \"" << name<< "\" !!!" << OFFCOL << "\n\n";
+        EchoAllDev();
+        exit(-1);
+    }
+}
+
+// 打印所有网卡信息
+void EchoAllDev(void)
+{
+    // 网卡列表
+    NetCardInfo devlist;
+    GetNetCardList(devlist);
+    
+    cout << "可捕获接口列表:\n\t";
+
+    // 遍历网卡
+    for(auto dev : devlist.name_ip)
+    {
+        cout << "接口 - " << dev.first << "\n\t";
+    }
+    cout << endl;
 }
 
 // 打印指定网卡信息
 void EchoDevIp(const string name)
 {
     unsigned short count = 0;
+    // 网卡列表
     NetCardInfo devlist;
+
+    // 获取所有网卡，存储到devlist中
     GetNetCardList(devlist);
 
+    // 在devlist中查找指定name网卡
     NetAddrList addlist = devlist.searchName(name);
 
     cout << "网卡(" << name << ")IP信息:\n";
