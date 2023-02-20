@@ -14,12 +14,20 @@ void EchoHelp(void)
     cout << "--dip\t\tdestination ip address\n\t";
     cout << "--sprot\t\tsource port(0-65535)\n\t";
     cout << "--dprot\t\tdestination port(0-65535)\n\t";
-    cout << "--help\t\thelp information\n";
+    cout << "--help\t\t(mutex)help information\n";
 }
 
 bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, unsigned int &count)
 {
-    if(argc == 1)
+    // cmd --help
+    if((argc == 2) && (argv[argc-1] == string("--help")))
+    {
+        EchoHelp();
+        exit(0);
+    }
+    
+    // 没有参数后者参数个数不匹配,正确的格式argc应该是单数
+    if(argc == 1 || argc % 2 == 0)
         return false;
 
     map<string, int> options;
@@ -31,7 +39,6 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, unsign
     options.insert(pair<string, int>("--dip", 4));
     options.insert(pair<string, int>("--sport", 5));
     options.insert(pair<string, int>("--dport", 6));
-    options.insert(pair<string, int>("--help", 7));
     
     uint8_t numberFlag = 0;
 
@@ -86,12 +93,6 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, unsign
                     bpfexpr += "&& dst port ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
-                    continue;
-                case 7:
-                    i++;
-                    if(argc != 2)
-                        return false;
-                    EchoHelp();
                     continue;
             }
         }

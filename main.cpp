@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     if(!ArgIfLegal(argc, argv, bpfexpr, devname, count))
     {
-        cout << COL(1, 40, 31) << "\nParameter format error !!!" << OFFCOL << "\n\n";
+        cerr << COL(1, 40, 31) << "\nParameter format error !!!" << OFFCOL << "\n\n";
         EchoHelp();
         exit(-1);
     }

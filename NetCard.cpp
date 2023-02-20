@@ -8,7 +8,7 @@ NetAddrList NetCardInfo::searchName(const string name)
     }
     catch (const out_of_range &orr)
     {
-        cout << COL(1, 40, 31) << "\nDon't have the equipment to called \"" << name<< "\" !!!" << OFFCOL << "\n\n";
+        cerr << COL(1, 40, 31) << "\nDon't have the equipment to called \"" << name<< "\" !!!" << OFFCOL << "\n\n";
         EchoAllDev();
         exit(-1);
     }
