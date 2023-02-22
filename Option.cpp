@@ -1,3 +1,4 @@
+#include "Option.h"
 #include <iostream>
 #include <map>
 
@@ -5,7 +6,8 @@ using namespace std;
 
 void EchoHelp(void)
 {
-    cout << "usage: ./sniffer [options] ..." << "\n\n";
+    cout << "Usage: \n\t";
+    cout << "./sniffer [-i interface] [-t type] [-c count] [--sip address] [--dip address] [--sport port] [--dprot port] " << "\n\n";
     cout << "Optional parameters:\n\t";
     cout << "-i\t\t(number)to capture data interface\n\t";
     cout << "-t\t\tprotocol type(tcp/udp/icmp)\n\t";
@@ -14,15 +16,21 @@ void EchoHelp(void)
     cout << "--dip\t\tdestination ip address\n\t";
     cout << "--sprot\t\tsource port(0-65535)\n\t";
     cout << "--dprot\t\tdestination port(0-65535)\n\t";
+    cout << "--intera\t\tinteractive mode\n\t";
     cout << "--help\t\t(mutex)help information\n";
 }
 
-bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, unsigned int &count)
+bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &count)
 {
     // cmd --help
-    if((argc == 2) && (argv[argc-1] == string("--help")))
-    {
-        EchoHelp();
+    if(argc == 2)
+    { 
+        if(argv[argc-1] != string("--help") && argv[argc-1] != string("--intera"))
+            return false;
+        else if(argv[argc-1] == string("--intera"))
+            Interactive();
+        else 
+            EchoHelp();
         exit(0);
     }
     
@@ -61,8 +69,6 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, unsign
                     catch(...){
                         return false;
                     }
-
-
                     continue;
                 case 2:
                     i++;

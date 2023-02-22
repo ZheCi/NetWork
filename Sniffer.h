@@ -1,5 +1,6 @@
 #ifndef __SNIFFER_H__
 #define __SNIFFER_H__
+
 #include <pcap/pcap.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
