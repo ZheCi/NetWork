@@ -93,8 +93,7 @@ void Interactive(void)
         cout << "请输入捕获数据包数量(default=1): ";
         cin >> count;
         cout << "按Ehter键开始捕获";
-        cin.clear();
-        cin.sync();
+        getchar();
         getchar();
 
         cout << "=======================================================\n";
