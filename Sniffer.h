@@ -60,6 +60,10 @@ class PacketHandler{
         PacketHandler& operator =(PacketHandler &) = delete;
 };
 
+typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
+
+// 开始捕获函数
+void capture(string devname, string bpfexpr, int count, pcap_handler funptr);
 
 // 打印数据包信息概述
 void pkthdrInfo(const struct pcap_pkthdr *header);

@@ -2,6 +2,39 @@
 
 using namespace std;
 
+// 捕获函数
+void capture(string devname, string bpfexpr, int count, pcap_handler funptr)
+{
+    // 设备句柄
+    pcap_t *dev;
+    char errbuff[PCAP_ERRBUF_SIZE];
+
+    // 打开网路接口
+    dev = pcap_open_live(devname.c_str(), 65535, 1, 200, errbuff);
+
+    if(dev == NULL)
+    {
+        cerr << errbuff << endl;
+        exit(-1);
+    }
+
+    // 设置为非阻塞
+    pcap_setnonblock(dev, 0, errbuff);
+
+    // 配置过滤器
+    struct bpf_program setFilter = {0};
+    pcap_compile(dev, &setFilter, bpfexpr.c_str(), 1, 0);
+    pcap_setfilter(dev, &setFilter);
+
+    // 捕获数据包
+    pcap_loop(dev, count, funptr, NULL);
+
+    // 关闭网络接口
+    pcap_close(dev);
+}
+
+
+// 打印传输层
 void PacketHandler::showItu(void)
 {
     if(ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0806))
@@ -17,6 +50,7 @@ void PacketHandler::showItu(void)
     }
 }
 
+// 打印ICMP数据包
 void PacketHandler::showIcmp(void)
 {
     cout << COL(5, 40, 33) << "ICMP头部信息:" << OFFCOL << "\n\t";
@@ -24,6 +58,7 @@ void PacketHandler::showIcmp(void)
     printf("Type:%d Code:%d ID:%d Seq:%d\n", icmphdr->icmp_type, icmphdr->icmp_code, ntohs(icmphdr->icmp_hun.ih_idseq.icd_id), ntohs(icmphdr->icmp_hun.ih_idseq.icd_seq));
 }
 
+// 打印UDP数据包
 void PacketHandler::showUdp(void)
 {
     cout << COL(5, 40, 33) << "UDP头部信息:" << OFFCOL << "\n\t";
@@ -33,6 +68,7 @@ void PacketHandler::showUdp(void)
     cout << "校验和: " << dec << ntohs(udphdr->uh_sum) << "\n";
 }
 
+// 打印TCP数据包
 void PacketHandler::showTcp(void)
 {
     cout << COL(5, 40, 33) << "TCP头部信息:" << OFFCOL << "\n\t";
@@ -50,12 +86,15 @@ void PacketHandler::showTcp(void)
             ntohs(tcphdr->th_win), 4*tcphdr->th_off);
 }
 
+// 打印网络层
+
 void PacketHandler::showIpArp(void)
 {
     ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? (showIp()) : (showArp()); 
 
 }
 
+// 打印ARP数据包
 void PacketHandler::showArp(void)
 {
     cout << COL(5, 40, 34) << "(R)ARP头部信息:" << OFFCOL << "\n\t";
@@ -107,6 +146,8 @@ void PacketHandler::showArp(void)
     cout << "目的MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(arphdr->arp_tha)) << "\n";
 }
 
+
+// 打印IP数据包
 void PacketHandler::showIp(void)
 {
     cout << COL(5, 40, 34) << "IP包头部信息:" << OFFCOL << "\n\t";
@@ -128,6 +169,7 @@ void PacketHandler::showIp(void)
     cout << "生存时间: " << signed(iphdr->ip_ttl) << "\n";
 }
 
+// 但因数据链路层，以太网帧
 void PacketHandler::showEthdr(void)
 {   
     cout << COL(5, 40, 32) << "Ethernet_II帧头部信息:" << OFFCOL << "\n\t";
@@ -137,6 +179,7 @@ void PacketHandler::showEthdr(void)
     cout << "上层协议类型: " << hex << (ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? "IPv4(0x0800)" : "ARP(0x0806)") << "\n";
 }
 
+// 数据包头部初始化
 void PacketHandler::init(const u_char *packet)
 {
     // 以太网帧

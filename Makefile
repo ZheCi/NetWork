@@ -1,4 +1,4 @@
-OBJE=main.o NetCard.o Sniffer.o Option.o PackStructGraph.o
+OBJE=main.o NetCard.o Sniffer.o Interface.o Option.o PackStructGraph.o 
 CC=g++
 CFLAGS+=-c -Wall
 

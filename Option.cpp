@@ -1,9 +1,11 @@
 #include "Option.h"
+#include "Interface.h"
 #include <iostream>
 #include <map>
 
 using namespace std;
 
+// 打印邦族
 void EchoHelp(void)
 {
     cout << "Usage: \n\t";
@@ -17,29 +19,13 @@ void EchoHelp(void)
     cout << "--sprot\t\tsource port(0-65535)\n\t";
     cout << "--dprot\t\tdestination port(0-65535)\n\t";
     cout << "--intera\t\tinteractive mode\n\t";
+    cout << "--sendtcp\t\tSend fake TCP packet\n\t";
     cout << "--help\t\t(mutex)help information\n";
 }
 
-bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &count)
+bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &count, pcap_handler funptr)
 {
-    // cmd --help
-    if(argc == 2)
-    { 
-        if(argv[argc-1] != string("--help") && argv[argc-1] != string("--intera"))
-            return false;
-        else if(argv[argc-1] == string("--intera"))
-            Interactive();
-        else 
-            EchoHelp();
-        exit(0);
-    }
-    
-    // 没有参数后者参数个数不匹配,正确的格式argc应该是单数
-    if(argc == 1 || argc % 2 == 0)
-        return false;
-
     map<string, int> options;
-
     options.insert(pair<string, int>("-i", 0));
     options.insert(pair<string, int>("-c", 1));
     options.insert(pair<string, int>("-t", 2));
@@ -47,8 +33,12 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &c
     options.insert(pair<string, int>("--dip", 4));
     options.insert(pair<string, int>("--sport", 5));
     options.insert(pair<string, int>("--dport", 6));
-    
-    uint8_t numberFlag = 0;
+    options.insert(pair<string, int>("--intera", 7));
+    options.insert(pair<string, int>("--sendtcp", 8));
+    options.insert(pair<string, int>("--help", 9));
+
+
+    bool devflag = false;
 
     for(int i = 1; i < argc; i++)
     {
@@ -57,7 +47,7 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &c
             {
                 // 网卡必选项
                 case 0:
-                    numberFlag |= 0x01;
+                    devflag = true;
                     i++;
                     devname = argv[i];
                     continue;
@@ -75,31 +65,58 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &c
                     bpfexpr += "&& ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
+                    cout << bpfexpr << endl;
                     continue;
                 case 3:
                     i++;
                     bpfexpr += "&& src host ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
+                    cout << bpfexpr << endl;
                     continue;
                 case 4:
                     i++;
+                    bpfexpr += "&& src host ";
                     bpfexpr += "&& dst host ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
+                    cout << bpfexpr << endl;
                     continue;
                 case 5:
                     i++;
                     bpfexpr += "&& src port ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
+                    cout << bpfexpr << endl;
                     continue;
                 case 6:
                     i++;
                     bpfexpr += "&& dst port ";
                     bpfexpr += argv[i];
                     bpfexpr += " ";
+                    cout << bpfexpr << endl;
                     continue;
+                case 7:
+                    // 调用交互模式
+                    if(argc != 2)
+                        return false;
+                    interface(funptr);
+                    exit(0);
+                    break;
+                case 8:
+                    // 调用发送TCP
+                    if(argc != 2)
+                        return false;
+                    cout << "发送TCP报文\n";
+                    exit(0);
+                    break;
+                case 9:
+                    // 调用打印帮助信息
+                    if(argc != 2)
+                        return false;
+                    EchoHelp();
+                    exit(0);
+                    break;
             }
         }
         catch (const out_of_range &orr){
@@ -107,10 +124,12 @@ bool ArgIfLegal(int argc, char *argv[], string &bpfexpr, string &devname, int &c
         }
     }
 
-    if(numberFlag != 0x01)
+    if(devflag == false)
         return false;
 
-    bpfexpr.erase(0,3);
+    bpfexpr.erase(0, 3);
+    
+    cout << "bpfexpr = " << bpfexpr << endl;
 
     return true;
-}
+} 
