@@ -1,5 +1,6 @@
 #include "Option.h"
 #include "Interface.h"
+#include "SendTcp.h"
 #include <iostream>
 #include <map>
 
@@ -62,39 +63,28 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
                     continue;
                 case 2:
                     i++;
-                    bpfexpr += "&& ";
+                    bpfexpr += " && ";
                     bpfexpr += argv[i];
-                    bpfexpr += " ";
-                    cout << bpfexpr << endl;
                     continue;
                 case 3:
                     i++;
-                    bpfexpr += "&& src host ";
+                    bpfexpr += " && src host ";
                     bpfexpr += argv[i];
-                    bpfexpr += " ";
-                    cout << bpfexpr << endl;
                     continue;
                 case 4:
                     i++;
-                    bpfexpr += "&& src host ";
-                    bpfexpr += "&& dst host ";
+                    bpfexpr += " && dst host ";
                     bpfexpr += argv[i];
-                    bpfexpr += " ";
-                    cout << bpfexpr << endl;
                     continue;
                 case 5:
                     i++;
-                    bpfexpr += "&& src port ";
+                    bpfexpr += " && src port ";
                     bpfexpr += argv[i];
-                    bpfexpr += " ";
-                    cout << bpfexpr << endl;
                     continue;
                 case 6:
                     i++;
-                    bpfexpr += "&& dst port ";
+                    bpfexpr += " && dst port ";
                     bpfexpr += argv[i];
-                    bpfexpr += " ";
-                    cout << bpfexpr << endl;
                     continue;
                 case 7:
                     // 调用交互模式
@@ -107,7 +97,7 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
                     // 调用发送TCP
                     if(argc != 2)
                         return false;
-                    cout << "发送TCP报文\n";
+                    SendTcp();
                     exit(0);
                     break;
                 case 9:
@@ -127,9 +117,7 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
     if(devflag == false)
         return false;
 
-    bpfexpr.erase(0, 3);
+    bpfexpr.erase(0, 4);
     
-    cout << "bpfexpr = " << bpfexpr << endl;
-
     return true;
 } 

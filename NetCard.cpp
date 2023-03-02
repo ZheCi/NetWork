@@ -50,7 +50,7 @@ void EchoDevIp(const string name)
     {
         cout << "\t" << dec << ++count << " - IP: " << i.first << "\t子网掩码: " << i.second << endl;
     }
-    cout << "================================================================\n";
+    cout << "=======================================================\n";
 }
 
  void NetCardInfo::insert(pair<string, NetAddrList> net)

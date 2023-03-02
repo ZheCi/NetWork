@@ -43,9 +43,9 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    cout << bpfexpr << endl;
-
     // 打印捕获网卡信息
+    clearScreen();
+    cout << "=======================================================\n";
     EchoDevIp(devname);
     
     // 开始捕获

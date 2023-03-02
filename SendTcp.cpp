@@ -1,40 +1,33 @@
-#include <iomanip>
-#include <iostream>
-#include <cstring>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#include <unistd.h>
+#include "SendTcp.h"
+#include "PackStructGraph.h"
 
 using namespace std;
 
-class PackInfoUser
+int SendTcp(void)
 {
-    public:
-        string sip;
-        string dip;
-        int sport;
-        int dport;
-        string data;
-};
-
-void SendTcp(void)
-{
+    clearScreen();
+    
     PackInfoUser dataInfo;
 
-     cout << "源头IP：";
-     cin >> dataInfo.sip;
-     cout << "目的IP：";
-     cin >> dataInfo.dip;
-     cout << "源端口：";
-     cin >> dataInfo.sport;
-     cout << "目的端口：";
-     cin >> dataInfo.dport;
-     cout << "要发送的数据：";
-     cin >> dataInfo.data;
-    
+    cout << "========================================================\n";
+    cout << "                        构造Tcp报文\n";
+    cout << "========================================================\n";
+    cout << "源头IP：";
+    cin >> dataInfo.sip;
+    cout << "目的IP：";
+    cin >> dataInfo.dip;
+    cout << "源端口：";
+    cin >> dataInfo.sport;
+    cout << "目的端口：";
+    cin >> dataInfo.dport;
+    cout << "序列号：";
+    cin >> dataInfo.seq;
+    cout << "确认号：";
+    cin  >> dataInfo.seq_ack;
+    cout << "要发送的数据：";
+    cin >> dataInfo.data;
+    cout << "========================================================\n";
+
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
     if (sockfd < 0) {
         perror("socket");
@@ -68,8 +61,8 @@ void SendTcp(void)
     struct tcphdr* tcp = (struct tcphdr*)(packet + sizeof(struct iphdr));
     tcp->source = htons(dataInfo.sport);
     tcp->dest = htons(dataInfo.dport);
-    tcp->seq = htonl(1);
-    tcp->ack_seq = 0;
+    tcp->seq = htonl(dataInfo.seq);
+    tcp->ack_seq = htonl(dataInfo.seq_ack);
     tcp->doff = 5;
     tcp->syn = 1;
     tcp->window = htons(65535);
@@ -86,10 +79,14 @@ void SendTcp(void)
 
     delete[] packet;
 
-    cout << "正在发送该数据包....\n";
+    cout << "数据包发送完成，按Enter继续....\n";
+    cout << "========================================================\n";
 
     close(sockfd);
 
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getchar();
+    
     return 0;
 }
 
