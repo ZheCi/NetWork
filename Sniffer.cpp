@@ -1,4 +1,4 @@
-#include  "Sniffer.h"
+#include "Sniffer.h"
 
 using namespace std;
 
@@ -12,7 +12,7 @@ void capture(string devname, string bpfexpr, int count, pcap_handler funptr)
     // 打开网路接口
     dev = pcap_open_live(devname.c_str(), 65535, 1, 200, errbuff);
 
-    if(dev == NULL)
+    if (dev == NULL)
     {
         cerr << errbuff << endl;
         exit(-1);
@@ -33,20 +33,22 @@ void capture(string devname, string bpfexpr, int count, pcap_handler funptr)
     pcap_close(dev);
 }
 
-
 // 打印传输层
 void PacketHandler::showItu(void)
 {
-    if(ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0806))
+    if (ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0806))
         return;
-    switch(iphdr->ip_p) 
+    switch (iphdr->ip_p)
     {
-        case 1:
-            showIcmp(); break;
-        case 6:
-            showTcp(); break;
-        case 17:
-            showUdp(); break;
+    case 1:
+        showIcmp();
+        break;
+    case 6:
+        showTcp();
+        break;
+    case 17:
+        showUdp();
+        break;
     }
 }
 
@@ -76,22 +78,21 @@ void PacketHandler::showTcp(void)
     cout << "目的端口: " << dec << ntohs(tcphdr->th_dport) << "\n\t";
 
     printf("%c%c%c%c%c%c Seq: 0x%x Ack: 0x%x Win: 0x%x TcpLen: %d\n",
-            (tcphdr->th_flags & TH_URG ? 'U' : '*'),
-            (tcphdr->th_flags & TH_ACK ? 'A' : '*'),
-            (tcphdr->th_flags & TH_PUSH ? 'P' : '*'),
-            (tcphdr->th_flags & TH_RST ? 'R' : '*'),
-            (tcphdr->th_flags & TH_SYN ? 'S' : '*'),
-            (tcphdr->th_flags & TH_FIN ? 'F' : '*'),
-            ntohl(tcphdr->th_seq), ntohl(tcphdr->th_ack),
-            ntohs(tcphdr->th_win), 4*tcphdr->th_off);
+           (tcphdr->th_flags & TH_URG ? 'U' : '*'),
+           (tcphdr->th_flags & TH_ACK ? 'A' : '*'),
+           (tcphdr->th_flags & TH_PUSH ? 'P' : '*'),
+           (tcphdr->th_flags & TH_RST ? 'R' : '*'),
+           (tcphdr->th_flags & TH_SYN ? 'S' : '*'),
+           (tcphdr->th_flags & TH_FIN ? 'F' : '*'),
+           ntohl(tcphdr->th_seq), ntohl(tcphdr->th_ack),
+           ntohs(tcphdr->th_win), 4 * tcphdr->th_off);
 }
 
 // 打印网络层
 
 void PacketHandler::showIpArp(void)
 {
-    ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? (showIp()) : (showArp()); 
-
+    ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? (showIp()) : (showArp());
 }
 
 // 打印ARP数据包
@@ -102,29 +103,38 @@ void PacketHandler::showArp(void)
     cout << "协议类型: " << (ntohs(arphdr->ea_hdr.ar_pro) == 0x800 ? "IPv4" : "Unknown") << "\n\t";
     cout << "操作码: ";
 
-    switch(ntohs(arphdr->ea_hdr.ar_op))
+    switch (ntohs(arphdr->ea_hdr.ar_op))
     {
-        case ARPOP_REQUEST:
-            cout << "ARPOP_REQUEST(ARP请求)\n\t"; break;
-        case ARPOP_REPLY:
-            cout << "ARPOP_REPLY(ARP应答)\n\t"; break;
-        case ARPOP_RREQUEST:
-            cout << "ARPOP_RREQUEST(RARP请求)\n\t"; break;
-        case ARPOP_RREPLY:
-            cout << "ARPOP_RREPLY(RARP应答)\n\t"; break;
-        case ARPOP_InREQUEST:
-            cout << "ARPOP_InREQUEST(在ARP请求中)\n\t"; break;
-        case ARPOP_InREPLY:
-            cout << "ARPOP_InREPLY(在ARP应答中)\n\t"; break;
-        case ARPOP_NAK:
-            cout << "ARPOP_NAK((ATM)ARP否定)\n\t"; break;
-        default: cout << "Unknown\n\t"; break;
+    case ARPOP_REQUEST:
+        cout << "ARPOP_REQUEST(ARP请求)\n\t";
+        break;
+    case ARPOP_REPLY:
+        cout << "ARPOP_REPLY(ARP应答)\n\t";
+        break;
+    case ARPOP_RREQUEST:
+        cout << "ARPOP_RREQUEST(RARP请求)\n\t";
+        break;
+    case ARPOP_RREPLY:
+        cout << "ARPOP_RREPLY(RARP应答)\n\t";
+        break;
+    case ARPOP_InREQUEST:
+        cout << "ARPOP_InREQUEST(在ARP请求中)\n\t";
+        break;
+    case ARPOP_InREPLY:
+        cout << "ARPOP_InREPLY(在ARP应答中)\n\t";
+        break;
+    case ARPOP_NAK:
+        cout << "ARPOP_NAK((ATM)ARP否定)\n\t";
+        break;
+    default:
+        cout << "Unknown\n\t";
+        break;
     }
 
     cout << "源IP地址: ";
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
-        if(i == 3)
+        if (i == 3)
         {
             cout << dec << static_cast<unsigned>(arphdr->arp_spa[i]) << "\t";
             break;
@@ -134,9 +144,9 @@ void PacketHandler::showArp(void)
     cout << "源MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(arphdr->arp_sha)) << "\n\t";
 
     cout << "目的IP地址: ";
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
-        if(i == 3)
+        if (i == 3)
         {
             cout << dec << static_cast<unsigned int>(arphdr->arp_tpa[i]) << "\t";
             break;
@@ -146,7 +156,6 @@ void PacketHandler::showArp(void)
     cout << "目的MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(arphdr->arp_tha)) << "\n";
 }
 
-
 // 打印IP数据包
 void PacketHandler::showIp(void)
 {
@@ -155,23 +164,27 @@ void PacketHandler::showIp(void)
     cout << "源地址: " << inet_ntoa(iphdr->ip_src) << "\n\t";
     cout << "目地址: " << inet_ntoa(iphdr->ip_dst) << "\n\t";
     cout << "上层协议类型: ";
-    switch(iphdr->ip_p) 
+    switch (iphdr->ip_p)
     {
-        case 1:
-            cout << "ICMP\n\t"; break;
-        case 6:
-            cout << "TCP\n\t"; break;
-        case 17:
-            cout << "UDP\n\t"; break;
-        default:
-            cout << "(OTHER)\n\t"; break;
+    case 1:
+        cout << "ICMP\n\t";
+        break;
+    case 6:
+        cout << "TCP\n\t";
+        break;
+    case 17:
+        cout << "UDP\n\t";
+        break;
+    default:
+        cout << "(OTHER)\n\t";
+        break;
     }
     cout << "生存时间: " << signed(iphdr->ip_ttl) << "\n";
 }
 
 // 但因数据链路层，以太网帧
 void PacketHandler::showEthdr(void)
-{   
+{
     cout << COL(5, 40, 32) << "Ethernet_II帧头部信息:" << OFFCOL << "\n\t";
 
     cout << "源MAC地址: " << ether_ntoa(reinterpret_cast<struct ether_addr *>(ethdr->ether_shost)) << "\n\t";
@@ -183,30 +196,30 @@ void PacketHandler::showEthdr(void)
 void PacketHandler::init(const u_char *packet)
 {
     // 以太网帧
-    ethdr = reinterpret_cast<struct ether_header*>(const_cast<u_char *>(packet));
+    ethdr = reinterpret_cast<struct ether_header *>(const_cast<u_char *>(packet));
 
     // ARP包
-    if(ntohs(ethdr->ether_type)== static_cast<uint16_t>(0x0806))
+    if (ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0806))
     {
-        arphdr = reinterpret_cast<struct ether_arp*>(const_cast<u_char *>(packet) +14);
+        arphdr = reinterpret_cast<struct ether_arp *>(const_cast<u_char *>(packet) + 14);
         return;
     }
 
     // IP包
-    iphdr = reinterpret_cast<struct ip*>(const_cast<u_char *>(packet) +14);
+    iphdr = reinterpret_cast<struct ip *>(const_cast<u_char *>(packet) + 14);
 
     // TCP/UDP/ICMP包
-    switch(iphdr->ip_p)
+    switch (iphdr->ip_p)
     {
-        case 1:
-            icmphdr = reinterpret_cast<struct icmp*>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
-            break;
-        case 6:
-            tcphdr = reinterpret_cast<struct tcphdr*>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
-            break;
-        case 17:
-            udphdr = reinterpret_cast<struct udphdr*>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
-            break;
+    case 1:
+        icmphdr = reinterpret_cast<struct icmp *>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
+        break;
+    case 6:
+        tcphdr = reinterpret_cast<struct tcphdr *>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
+        break;
+    case 17:
+        udphdr = reinterpret_cast<struct udphdr *>(const_cast<u_char *>(packet) + 14 + (iphdr->ip_hl * 4));
+        break;
     }
 }
 
@@ -237,12 +250,12 @@ void pkthdrInfo(const struct pcap_pkthdr *header)
 void EchoPacket(const struct pcap_pkthdr *header, const u_char *packet)
 {
     cout << COL(5, 40, 37) << "数据包内容:" << OFFCOL << "\n\t";
-    for(int i = 0; i < static_cast<int>(header->len); i++)
+    for (int i = 0; i < static_cast<int>(header->len); i++)
     {
         printf("%02x ", packet[i]);
-        if((i + 1) % 16 == 0)
+        if ((i + 1) % 16 == 0)
             printf("\n\t");
-        if((i == 90))
+        if ((i == 90))
         {
             cout << "......";
             break;

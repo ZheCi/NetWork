@@ -6,11 +6,12 @@
 
 using namespace std;
 
-// 打印邦族
+// 打印帮助
 void EchoHelp(void)
 {
     cout << "Usage: \n\t";
-    cout << "./sniffer [-i interface] [-t type] [-c count] [--sip address] [--dip address] [--sport port] [--dprot port] " << "\n\n";
+    cout << "./sniffer [-i interface] [-t type] [-c count] [--sip address] [--dip address] [--sport port] [--dprot port] "
+         << "\n\n";
     cout << "Optional parameters:\n\t";
     cout << "-i\t\t(number)to capture data interface\n\t";
     cout << "-t\t\tprotocol type(tcp/udp/icmp)\n\t";
@@ -38,86 +39,113 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
     options.insert(pair<string, int>("--sendtcp", 8));
     options.insert(pair<string, int>("--help", 9));
 
-
     bool devflag = false;
 
-    for(int i = 1; i < argc; i++)
+    // 先处理argc==2的情况——>只有一个参数
+    // 再处理多个参数序列
+    //      先判断序列格式 1==2(-) ->error
+    // (1 & -) & (1 & -)
+
+    if (argc == 2)
     {
-        try{
-            switch(options.at(argv[i]))
-            {
-                // 网卡必选项
-                case 0:
-                    devflag = true;
-                    i++;
-                    devname = argv[i];
-                    continue;
-                case 1:
-                    i++;
-                    try{
-                        count = stoi(argv[i]);
-                    }
-                    catch(...){
-                        return false;
-                    }
-                    continue;
-                case 2:
-                    i++;
-                    bpfexpr += " && ";
-                    bpfexpr += argv[i];
-                    continue;
-                case 3:
-                    i++;
-                    bpfexpr += " && src host ";
-                    bpfexpr += argv[i];
-                    continue;
-                case 4:
-                    i++;
-                    bpfexpr += " && dst host ";
-                    bpfexpr += argv[i];
-                    continue;
-                case 5:
-                    i++;
-                    bpfexpr += " && src port ";
-                    bpfexpr += argv[i];
-                    continue;
-                case 6:
-                    i++;
-                    bpfexpr += " && dst port ";
-                    bpfexpr += argv[i];
-                    continue;
-                case 7:
-                    // 调用交互模式
-                    if(argc != 2)
-                        return false;
-                    interface(funptr);
-                    exit(0);
-                    break;
-                case 8:
-                    // 调用发送TCP
-                    if(argc != 2)
-                        return false;
-                    SendTcp();
-                    exit(0);
-                    break;
-                case 9:
-                    // 调用打印帮助信息
-                    if(argc != 2)
-                        return false;
-                    EchoHelp();
-                    exit(0);
-                    break;
-            }
-        }
-        catch (const out_of_range &orr){
-            return false; 
+        switch (options.at(argv[1]))
+        {
+        case 7:
+            interface(funptr);
+            exit(0);
+            break;
+        case 8:
+            SendTcp();
+            exit(0);
+            break;
+        case 9:
+            EchoHelp();
+            exit(0);
+            break;
+        default:
+            return false;
         }
     }
 
-    if(devflag == false)
+    for (int i = 1; i < argc - 1; i++)
+    {
+        if ((argv[i][0] == '-') && (argv[i + 1][0] == '-'))
+        {
+            return false;
+        }
+    }
+
+    for (int i = 1; i < argc; i++)
+    {
+        try
+        {
+            switch (options.at(argv[i]))
+            {
+            // 网卡必选项
+            case 0:
+                devflag = true;
+                if (++i >= argc)
+                    return false;
+                devname = argv[i];
+                continue;
+            case 1:
+                if (++i >= argc)
+                    return false;
+                try
+                {
+                    count = stoi(argv[i]);
+                }
+                catch (...)
+                {
+                    return false;
+                }
+                continue;
+            case 2:
+                if (++i >= argc)
+                    return false;
+                bpfexpr += " && ";
+                bpfexpr += argv[i];
+                continue;
+            case 3:
+                if (++i >= argc)
+                    return false;
+                bpfexpr += " && src host ";
+                bpfexpr += argv[i];
+                continue;
+            case 4:
+                if (++i >= argc)
+                    return false;
+                bpfexpr += " && dst host ";
+                bpfexpr += argv[i];
+                continue;
+            case 5:
+                if (++i >= argc)
+                    return false;
+                bpfexpr += " && src port ";
+                bpfexpr += argv[i];
+                continue;
+            case 6:
+                if (++i >= argc)
+                    return false;
+                bpfexpr += " && dst port ";
+                bpfexpr += argv[i];
+                continue;
+            case 7:
+            case 8:
+            case 9:
+                return false;
+            }
+        }
+        catch (const out_of_range &orr)
+        {
+            return false;
+        }
+    }
+
+    if (devflag == false)
         return false;
 
     bpfexpr.erase(0, 4);
-    
+
     return true;
-} 
+}

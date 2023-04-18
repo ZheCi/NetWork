@@ -1,6 +1,6 @@
 OBJE=main.o NetCard.o Sniffer.o Interface.o Option.o PackStructGraph.o SendTcp.o
 CC=g++
-CFLAGS+=-c -Wall
+CFLAGS+=-c -g -Wall
 
 sniffer:$(OBJE)
 	$(CC) $^ -o $@ -lpcap

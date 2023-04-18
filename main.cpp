@@ -25,7 +25,6 @@ void loopUserfun(u_char *user, const struct pcap_pkthdr *header, const u_char *p
     cout << "=======================================================\n";
 }
 
-
 int main(int argc, char *argv[])
 {
     // 获取终端大小
@@ -36,20 +35,25 @@ int main(int argc, char *argv[])
     string bpfexpr;
 
     // 处理命令行参数
-    if(!ArgIfLegal(argc, argv, devname, bpfexpr, count, loopUserfun))
+    if (!ArgIfLegal(argc, argv, devname, bpfexpr, count, loopUserfun))
     {
         cerr << COL(1, 40, 31) << "\nParameter format error !!!" << OFFCOL << "\n\n";
         EchoHelp();
         exit(-1);
     }
 
-    // 打印捕获网卡信息
+    // 清理屏幕
     clearScreen();
+
+    // 打印数据包格式图形
+    echoPacketStructGraph(1);
+    cout << "\n\n";
     cout << "=======================================================\n";
+    // 打印捕获网卡信息
     EchoDevIp(devname);
-    
+
     // 开始捕获
     capture(devname, bpfexpr, count, loopUserfun);
-    
+
     return 0;
 }
