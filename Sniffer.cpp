@@ -1,6 +1,39 @@
 #include "Sniffer.h"
+#include "NetCard.h"
 
 using namespace std;
+
+// 敏感端口
+int8_t SensitiveFlag = 0;
+const int SensitivePort[] = {22112, 22, 21, 23, 389, 873, 1080, 1352, 1433, 3389, 3306, 6082};
+
+// 打印敏感信息
+void PacketHandler::SensitiveInfo(std::ofstream &OutFile)
+{
+    if (!SensitiveFlag)
+        return;
+    cout << COL(5, 40, 33) << "敏感信息提醒:" << OFFCOL << "\n\t";
+    switch (SensitiveFlag)
+    {
+    case 1:
+        cout << COL(1, 37, 41) << "该链接访问主机的敏感端口\a" << OFFCOL << endl;
+    }
+
+    OutFile << getDateTimeString() << "\t";
+    OutFile << inet_ntoa(iphdr->ip_src) << ":";
+    if (iphdr->ip_p == 17)
+        OutFile << ntohs(udphdr->uh_sport);
+    else if (iphdr->ip_p == 6)
+        OutFile << ntohs(tcphdr->th_sport);
+    OutFile << " ————————> ";
+    OutFile << inet_ntoa(iphdr->ip_dst) << ":";
+    if (iphdr->ip_p == 17)
+        OutFile << ntohs(udphdr->uh_dport);
+    else if (iphdr->ip_p == 6)
+        OutFile << ntohs(tcphdr->th_dport);
+    OutFile << endl;
+    SensitiveFlag = 0;
+}
 
 // 捕获函数
 void capture(string devname, string bpfexpr, int count, pcap_handler funptr)
@@ -63,6 +96,11 @@ void PacketHandler::showIcmp(void)
 // 打印UDP数据包
 void PacketHandler::showUdp(void)
 {
+    // 敏感端口检测
+    for (auto i : SensitivePort)
+        if (i == ntohs(tcphdr->th_dport))
+            SensitiveFlag |= 0x1;
+
     cout << COL(5, 40, 33) << "UDP头部信息:" << OFFCOL << "\n\t";
     cout << "源端口: " << dec << ntohs(udphdr->uh_sport) << "\n\t";
     cout << "目的端口: " << dec << ntohs(udphdr->uh_dport) << "\n\t";
@@ -73,6 +111,11 @@ void PacketHandler::showUdp(void)
 // 打印TCP数据包
 void PacketHandler::showTcp(void)
 {
+    // 敏感端口检测
+    for (auto i : SensitivePort)
+        if (i == ntohs(tcphdr->th_dport))
+            SensitiveFlag |= 0x1;
+
     cout << COL(5, 40, 33) << "TCP头部信息:" << OFFCOL << "\n\t";
     cout << "源端口: " << dec << ntohs(tcphdr->th_sport) << "\n\t";
     cout << "目的端口: " << dec << ntohs(tcphdr->th_dport) << "\n\t";
@@ -89,7 +132,6 @@ void PacketHandler::showTcp(void)
 }
 
 // 打印网络层
-
 void PacketHandler::showIpArp(void)
 {
     ntohs(ethdr->ether_type) == static_cast<uint16_t>(0x0800) ? (showIp()) : (showArp());

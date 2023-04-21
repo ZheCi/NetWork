@@ -1,4 +1,6 @@
+#include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <sys/time.h>
 #include <time.h>
 #include "Option.h"
@@ -7,6 +9,9 @@
 #include "PackStructGraph.h"
 
 using namespace std;
+
+// 文件
+std::ofstream OutFile;
 
 // 回调函数
 void loopUserfun(u_char *user, const struct pcap_pkthdr *header, const u_char *packet)
@@ -22,11 +27,29 @@ void loopUserfun(u_char *user, const struct pcap_pkthdr *header, const u_char *p
 
     EchoPacket(header, packet);
 
+    packhdr.SensitiveInfo(OutFile);
+
     cout << "=======================================================\n";
 }
 
 int main(int argc, char *argv[])
 {
+    // 检擦Sensitive.txt文件大小
+    std::filesystem::path fp = std::filesystem::current_path();
+    fp += "/Sensitive.txt";
+
+    // 判断fp中的路径不存在
+    if (!std::filesystem::exists(fp))
+        OutFile.open("Sensitive.txt", std::ios::trunc);
+    else
+    {
+        // 文件大小小于10M，则追加模式打开, 否则截断
+        if (std::filesystem::file_size(fp) < 1024 * 10)
+            OutFile.open("Sensitive.txt", std::ios::app);
+        else
+            OutFile.open("Sensitive.txt", std::ios::trunc);
+    }
+
     // 获取终端大小
     getTerminalSize(terminalRows, terminalCols);
 
@@ -54,6 +77,9 @@ int main(int argc, char *argv[])
 
     // 开始捕获
     capture(devname, bpfexpr, count, loopUserfun);
+
+    // 关闭文件, 这有BUG，其他退出点并没有调用Close关闭文件
+    OutFile.close();
 
     return 0;
 }

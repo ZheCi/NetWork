@@ -6,7 +6,7 @@ using namespace std;
 int SendTcp(void)
 {
     clearScreen();
-    
+
     PackInfoUser dataInfo;
 
     cout << "========================================================\n";
@@ -23,13 +23,15 @@ int SendTcp(void)
     cout << "序列号：";
     cin >> dataInfo.seq;
     cout << "确认号：";
-    cin  >> dataInfo.seq_ack;
+    cin >> dataInfo.seq_ack;
     cout << "要发送的数据：";
-    cin >> dataInfo.data;
+    cin.ignore();
+    getline(cin, dataInfo.data);
     cout << "========================================================\n";
 
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-    if (sockfd < 0) {
+    if (sockfd < 0)
+    {
         perror("socket");
         return -1;
     }
@@ -42,10 +44,10 @@ int SendTcp(void)
 
     const int packet_size = sizeof(struct iphdr) + sizeof(struct tcphdr) + dataInfo.data.size();
 
-    char* packet = new char[packet_size];
+    char *packet = new char[packet_size];
     memset(packet, 0, packet_size);
 
-    struct iphdr* ip = (struct iphdr*)packet;
+    struct iphdr *ip = (struct iphdr *)packet;
     ip->ihl = 5;
     ip->version = 4;
     ip->tos = 0;
@@ -58,7 +60,7 @@ int SendTcp(void)
     ip->tot_len = htons(packet_size);
     ip->check = 0;
 
-    struct tcphdr* tcp = (struct tcphdr*)(packet + sizeof(struct iphdr));
+    struct tcphdr *tcp = (struct tcphdr *)(packet + sizeof(struct iphdr));
     tcp->source = htons(dataInfo.sport);
     tcp->dest = htons(dataInfo.dport);
     tcp->seq = htonl(dataInfo.seq);
@@ -71,8 +73,9 @@ int SendTcp(void)
 
     memcpy(packet + packet_size - dataInfo.data.size(), dataInfo.data.c_str(), dataInfo.data.size());
 
-    int ret = sendto(sockfd, packet, packet_size, 0, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
-    if (ret < 0) {
+    int ret = sendto(sockfd, packet, packet_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    if (ret < 0)
+    {
         perror("sendto");
         return -1;
     }
@@ -86,7 +89,6 @@ int SendTcp(void)
 
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     getchar();
-    
+
     return 0;
 }
-

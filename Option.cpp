@@ -18,10 +18,10 @@ void EchoHelp(void)
     cout << "-c\t\tthe number of captured packets\n\t";
     cout << "--sip\t\tsource ip address\n\t";
     cout << "--dip\t\tdestination ip address\n\t";
-    cout << "--sprot\t\tsource port(0-65535)\n\t";
-    cout << "--dprot\t\tdestination port(0-65535)\n\t";
-    cout << "--intera\t\tinteractive mode\n\t";
-    cout << "--sendtcp\t\tSend fake TCP packet\n\t";
+    cout << "--sport\t\tsource port(0-65535)\n\t";
+    cout << "--dport\t\tdestination port(0-65535)\n\t";
+    cout << "--intera\tinteractive mode\n\t";
+    cout << "--sendtcp\tSend fake TCP packet\n\t";
     cout << "--help\t\t(mutex)help information\n";
 }
 
@@ -41,28 +41,30 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
 
     bool devflag = false;
 
-    // 先处理argc==2的情况——>只有一个参数
-    // 再处理多个参数序列
-    //      先判断序列格式 1==2(-) ->error
-    // (1 & -) & (1 & -)
-
     if (argc == 2)
     {
-        switch (options.at(argv[1]))
+        try
         {
-        case 7:
-            interface(funptr);
-            exit(0);
-            break;
-        case 8:
-            SendTcp();
-            exit(0);
-            break;
-        case 9:
-            EchoHelp();
-            exit(0);
-            break;
-        default:
+            switch (options.at(argv[1]))
+            {
+            case 7:
+                interface(funptr);
+                exit(0);
+                break;
+            case 8:
+                SendTcp();
+                exit(0);
+                break;
+            case 9:
+                EchoHelp();
+                exit(0);
+                break;
+            default:
+                return false;
+            }
+        }
+        catch (std::out_of_range &err)
+        {
             return false;
         }
     }
@@ -70,9 +72,7 @@ bool ArgIfLegal(int argc, char *argv[], string &devname, string &bpfexpr, int &c
     for (int i = 1; i < argc - 1; i++)
     {
         if ((argv[i][0] == '-') && (argv[i + 1][0] == '-'))
-        {
             return false;
-        }
     }
 
     for (int i = 1; i < argc; i++)
